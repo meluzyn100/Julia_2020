@@ -1,0 +1,147 @@
+using Plots
+import Base.Cartesian.lreplace
+#Jeśli programpo po wywołaniu zwraca błąd nalezy go wywołać ponownie
+
+my_cg = cgrad(:thermal, rev = true)
+macro get_XY(a,b)
+          return esc(:(global $a = $b))
+      end
+
+function df_x(xo,yo,f::Function,dx)
+    """Funkcja sluzaca do obliczania ∂f/∂x"""
+    return (f(xo+dx,yo)-f(xo,yo))/(dx)
+end
+
+function df_y(xo,yo,f::Function,dy)
+    """Funkcja sluzaca do obliczania ∂f/∂y"""
+    return (f(xo,yo+dy)-f(xo,yo))/(dy)
+end
+
+function tangent_expr(xo,yo,f::Function,h,X,Y)
+    """Funkcja sluzaca do obliczania plaszczyzny stycznej"""
+    z=df_x(xo,yo,f,h)*(X-xo)+df_y(xo,yo,f,h)*(Y-yo)+f(xo,yo)
+    return z
+end
+
+function main(f,r,So::Tuple,XoYo::Tuple=(NaN,NaN),dx=NaN)
+    """Główna funkcja
+       f-funkcja ktora chcemy narysowac
+       r-promien obszaru
+       Sₒ-srodek okregu
+       XₒYₒ-punkt dla ktorego szukamy płaszczyzny
+       dx-przyjmowane "h" w wrzoze na pochodna
+
+       Nie podanie 2 ostatnich argumentów
+       wyrysuje sam wykres funkcji.
+    """
+    if sqrt((XoYo[1]-So[1])^2+(XoYo[2]-So[2])^2)>r
+        #Sprawdzanie czy punk (x₀,y₀) ∈ D
+        throw(error("Punkt poza dziedziną"))
+    end
+
+    xs=collect(range(-r,r,length=1000))
+    ys=collect(range(-r,r,length=1000))
+
+    function foo(x,y)
+        """Funkcja zwraca pary (x,y) ∈ D """
+        if sqrt((x-So[1])^2+(y-So[2])^2)<=r
+            return f(x,y)
+        else
+            return NaN
+        end
+    end
+
+    function tangent(a,b)
+        return tangent_expr(XoYo[1],XoYo[2],f,dx,a,b)
+    end
+
+    function foo2(x,y)
+        """Funkcja zwraca pary (x,y) ∈ D tym razem dla plaszczyzny"""
+        if sqrt((x-So[1])^2+(y-So[2])^2)<=r
+            return tangent(x,y)
+        else
+            return NaN
+        end
+    end
+
+    # surface(xs,ys,foo2,c=my_cg)
+    # surface!(xs,ys,foo,c=my_cg, alpha=0.1)
+    surface(xs,ys,foo2, howscale=false, opacity=0.5, colorscale="Viridis")
+    surface!(xs,ys,foo, howscale=false, opacity=0.5, colorscale="Viridis")
+    plot!([XoYo[1]],[XoYo[2]],[foo(XoYo[1],XoYo[2])],
+          markershape = :o, markersize = 3, markercolor=:red,
+          label=false,xlabel="x", ylabel="y", zlabel="z",
+          title="Funkcja i styczna")|>display
+end
+
+#################################################################
+#Druga metoda dla funkcji glownej
+function main(f,AB::Array,CD::Array, XoYo::Tuple=(NaN,NaN),dx=NaN)
+    """Główna funkcja
+       f-funkcja ktora chcemy narysowac
+       AB-[A,B]
+       CD-[C,D] Zbiory wchodzace w skłąd iloczynu karteznskiego
+       XₒYₒ-punkt dla ktorego szukamy płaszczyzny
+       dx-przyjmowane "h" w wrzoze na pochodna
+
+       Nie podanie 2 ostatnich argumentów
+       wyrysuje sam wykres funkcji.
+    """
+    if XoYo[1]<AB[1] || XoYo[1]>AB[2] || XoYo[2]<CD[1] || XoYo[2]>CD[2]
+        #Sprawdzanie czy punk (x₀,y₀) ∈ D
+        throw(error("Punkt poza dziedziną"))
+    end
+
+    xs=collect(range(AB[1],AB[2],length=1000))
+    ys=collect(range(CD[1],CD[2],length=1000))
+
+    function foo(x,y)
+        if XoYo[1]<AB[1] || XoYo[1]>AB[2] || XoYo[2]<CD[1] || XoYo[2]>CD[2]
+            return NaN
+        else
+            return f(x,y)
+        end
+    end
+
+    function tangent(a,b)
+        return tangent_expr(XoYo[1],XoYo[2],f,dx,a,b)
+    end
+
+    function foo2(x,y)
+        if XoYo[1]<AB[1] || XoYo[1]>AB[2] || XoYo[2]<CD[1] || XoYo[2]>CD[2]
+            return NaN
+        else
+            return tangent(x,y)
+        end
+    end
+
+    surface(xs,ys,foo2,c=my_cg)
+    surface!(xs,ys,foo,c=my_cg)
+    plot!([XoYo[1]],[XoYo[2]],[foo(XoYo[1],XoYo[2])],
+          markershape = :o, markersize = 3, markercolor=:red,
+          label=false,xlabel="x", ylabel="y", zlabel="z",
+          title="Funkcja i styczna")|>display
+end
+
+
+function main(flag::Symbol,a,b,c,d=(NaN,NaN),e=NaN)
+    """
+        Dodanie flag :c dla okregu,
+        oraz :re dla prostokatu
+    """
+    if flag==:c
+        return main(a,b,c::Tuple,d::Tuple,e)
+    elseif flag==:re
+        return main(a,b::Array,c::Array, d::Tuple,e)
+    else
+        throw(error("Błedne argumenty"))
+    end
+
+end
+
+#Program nie potrzebuje flag by funkcja zadzialala
+#Jesli płaszczyzna styzcna nie przesunela sie nalezy wywołac wzor jeszcze raz
+
+f(x,y)=x^2+y^3
+main(:c,f,10,(0,0),(0,1),0.01)
+main(:re,f,[-2,2],[0,4],(1,2),0.001)
