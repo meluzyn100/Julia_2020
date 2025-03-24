@@ -1,16 +1,21 @@
-# Project Overview
+# Solar System Project
 
-## Introduction
-This project is developed using Julia, a high-performance programming language for technical computing. It is designed to provide efficient and scalable solutions for computational tasks.
+This project is written in the Julia programming language and is used to simulate the motion of planets in the solar system. The project includes scripts and Jupyter notebooks that enable visualization and analysis of planetary motion.
 
-## Features
-- High-performance numerical computations
-- Modular and extensible codebase
-- Easy-to-read and maintainable structure
+## Project Structure
+
+- **`elipsy.jl`** - Script containing functions related to elliptical orbit calculations of planets.
+- **`PlanetSystem.jl`** - The main library of the project, defining classes and functions for modeling the planetary system.
+- **`Projekt.jl`** - Script for running the solar system simulation.
+- **`Julia Project Notebook.ipynb`** - Jupyter notebook containing data analysis and visualization.
+- **`Julia Project Solar System.ipynb`** - Jupyter notebook with a simulation of planetary motion in the solar system.
+- **`Project.toml`** - Julia project configuration file containing dependencies and project information.
+- **`Readme.md`** - Project documentation (this file).
+- **`rotation.gif`, `SolarSystem.gif`, `SolarSystem1.gif`, `SolarSystem2.gif`, `System.gif`** - GIF files showing visualizations of planetary motion.
 
 ## Requirements
-- Julia 1.6 or later
-- Dependencies specified in `Project.toml`
+
+To run the project, you need to install the Julia programming language and the required packages. The list of dependencies is in the `Project.toml` file.
 
 ## Getting Started
 1. Clone the repository:
@@ -24,8 +29,6 @@ This project is developed using Julia, a high-performance programming language f
 3. Install dependencies:
     ```julia
     using Pkg
+    Pkg.activate(".")
     Pkg.instantiate()
     ```
-
-## License
-This project is licensed under the MIT License. See the `LICENSE` file for details.
