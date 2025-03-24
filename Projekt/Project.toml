@@ -1,0 +1,7 @@
+name = "Projekt"
+uuid = "your-unique-uuid-here"
+version = "0.1.0"
+
+[deps]
+AstroLib = "0.1.0" # Replace with the correct version if needed
+Plots = "1.0.0"    # Replace with the correct version if needed
